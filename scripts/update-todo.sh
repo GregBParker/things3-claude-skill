@@ -28,15 +28,34 @@ done
 
 # Build AppleScript
 SCRIPT="tell application \"Things3\"
+    set t to missing value
+
+    -- Try by name first
     try
         set t to to do \"$IDENTIFIER\"
-    on error
+    end try
+
+    -- Try by ID
+    if t is missing value then
         try
             set t to to do id \"$IDENTIFIER\"
-        on error
-            return \"NOT_FOUND\"
         end try
-    end try"
+    end if
+
+    -- Search through all to dos if still not found
+    if t is missing value then
+        set allTodos to to dos
+        repeat with todo in allTodos
+            if name of todo is \"$IDENTIFIER\" then
+                set t to todo
+                exit repeat
+            end if
+        end repeat
+    end if
+
+    if t is missing value then
+        return \"NOT_FOUND\"
+    end if"
 
 [ -n "$NEW_NAME" ] && SCRIPT="$SCRIPT
     set name of t to \"$NEW_NAME\""
